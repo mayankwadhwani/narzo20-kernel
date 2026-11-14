@@ -1,0 +1,15 @@
+NCM and ECM gadget modules for:
+4.14.336-Nethunter-VoPi-v2-g020784b3a0ae
+
+Target: Realme Narzo 20 / RMX2193 running the NetHunter VoPi v2 kernel.
+The unified Android ROM may identify this device as RMX2020.
+
+These are kernel modules, not a boot image or recovery installer.
+Build-time checks verify every imported symbol version against the target
+kernel, including module_layout. This does not prove runtime behavior.
+
+Do not force-load these modules or use them on another kernel version.
+ConfigFS binding, Android tethering integration, DHCP, Mac network traffic,
+reconnect behavior and reboot persistence require separate device tests.
+
+Source, patches and build instructions are provided in the narzo20-kernel repo.
