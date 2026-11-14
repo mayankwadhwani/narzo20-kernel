@@ -5,6 +5,10 @@ repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
 source "$repo_dir/build.env"
 build_dir="$(cd "${BUILD_DIR:-$repo_dir/.build}" && pwd)"
 artifact_dir="${ARTIFACT_DIR:-$repo_dir/artifacts}"
+test ! -e "$artifact_dir/kernel-verification.json" || {
+    echo "Use an empty artifact directory when changing build target." >&2
+    exit 1
+}
 export PATH="/usr/lib/llvm-21/bin:$PATH"
 clang --version | head -n 1 | grep -F "clang version $CLANG_VERSION"
 test -s "$build_dir/out/.config"

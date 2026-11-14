@@ -10,7 +10,8 @@ kernel, including module_layout. This does not prove runtime behavior.
 
 Known runtime result: the target phone rejected the NCM module with
 "Exec format error". No module was loaded. ECM has not been tested on-device.
-The loader rejection remains under investigation.
+The old kernel forces ignore-version flags while force loading is disabled.
+Use the fixed-kernel build target to repair that loader defect.
 
 Do not force-load these modules or use them on another kernel version.
 ConfigFS binding, Android tethering integration, DHCP, Mac network traffic,

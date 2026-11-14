@@ -1,0 +1,22 @@
+--- a/drivers/net/wireless/realtek/rtl8812au/Makefile
++++ b/drivers/net/wireless/realtek/rtl8812au/Makefile
+@@ -12,7 +12,7 @@
+ #EXTRA_CFLAGS += -Wno-error=cast-function-type
+ #EXTRA_CFLAGS += -Wno-parentheses-equality
+ #EXTRA_CFLAGS += -Wno-error=incompatible-pointer-types
+-EXTRA_CFLAGS += -Wno-stringop-overread
++EXTRA_CFLAGS += $(call cc-disable-warning,stringop-overread)
+ #EXTRA_CFLAGS += -Wno-pointer-bool-conversion
+ EXTRA_CFLAGS += -Wno-unknown-pragmas
+ #EXTRA_CFLAGS += -Wno-unused
+--- a/drivers/net/wireless/realtek/rtl88x2bu/Makefile
++++ b/drivers/net/wireless/realtek/rtl88x2bu/Makefile
+@@ -10,7 +10,7 @@
+ ccflags-y += -Wno-unused-function
+ ccflags-y += -Wno-unused-parameter
+ ccflags-y += -Wno-unused-variable
+-ccflags-y += -Wno-stringop-overread
++ccflags-y += $(call cc-disable-warning,stringop-overread)
+ ccflags-y += -Wno-array-bounds
+ ccflags-y += -Wno-address
+ ccflags-y += -Wno-missing-prototypes

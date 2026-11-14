@@ -1,61 +1,58 @@
-# Building a complete replacement kernel
+# Full kernel build
 
-The verified Actions target in this repository builds USB gadget modules. A full bootable NetHunter + KernelSU replacement requires additional integration; the reference `vmlinux` must not be flashed.
-
-## Established inputs
-
-Use the archive and hash in `build.env`, the configuration in `config/narzo20-nethunter-v2.config`, and Clang 21.1.8. Keep the Oplus compiler macros from `OplusKernelEnvConfig.mk`: changing them changes shared kernel structures and did not reproduce the installed ABI.
-
-The upstream `build.sh` is not sufficient as-is. It downloads an x86-64 AOSP compiler, fetches an unpinned KernelSU setup script from a `next` branch, and expects external changes absent from the archive.
-
-## KernelSU dependency
-
-The historical legacy dependency can be checked out independently:
+Select **kernel** in the manual Actions workflow, or run:
 
 ```sh
-git clone --filter=blob:none --no-checkout \
-  https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU-Next
-git -C KernelSU-Next checkout --detach fc33995cedc5e0ebf719745c71fe15e78694260f
-git -C KernelSU-Next rev-list --count HEAD
-git -C KernelSU-Next describe --tags --abbrev=0
+bash scripts/prepare.sh
+python3 scripts/prepare_kernel.py
+bash scripts/build_kernel.sh
 ```
 
-The last two commands were verified to return `2982` and `v3.2.0-legacy`. Its Kbuild computes `30000 + 2982 + 150 = 33132` and trusts the manager certificate used by the installed 3.2.0 manager.
+The result is `4.14.336-Nethunter-CDC-KSU-g020784b3a0ae`, with NCM/ECM built in. Artifacts contain `Image.gz`, the three wireless modules, kernel configuration, symbol versions, provenance and checksum files. This is not a recovery installer or a complete boot image.
 
-A full integration must connect `KernelSU-Next/kernel` to `drivers/kernelsu`, add the driver to `drivers/Makefile` and `drivers/Kconfig`, and enable:
+## Kernel loader repair
+
+The base source forced `MODULE_INIT_IGNORE_MODVERSIONS` and `MODULE_INIT_IGNORE_VERMAGIC` on every load, while the configuration disables `CONFIG_MODULE_FORCE_LOAD`. The resulting force-load path returns `-ENOEXEC`. The compiler consequently removes much of the normal loader path.
+
+`module-loader-checks.patch` removes those assignments and changes the bad-CRC return to rejection. Normal checks are restored, and forced loading stays disabled.
+
+## KernelSU
+
+The pinned legacy source is:
 
 ```text
-CONFIG_KSU=y
-CONFIG_KSU_MANUAL_HOOK=y
+KernelSU-Next/KernelSU-Next
+fc33995cedc5e0ebf719745c71fe15e78694260f
 ```
 
-Manual hooks must match this pinned legacy revision. Its Kbuild deliberately errors if the `ksu_handle_sys_reboot` hook is absent. Relevant integration areas include exec handling, access/stat compatibility, Android init read/stat handling, reboot supercalls and input handling. Use the prototypes in this revision's `feature/sucompat.c`, `runtime/ksud_integration.c` and `supercall/supercall.c`.
+Its Git history has 2,982 commits and tag `v3.2.0-legacy`, giving version `30000 + 2982 + 150 = 33132`. Its manager certificate matches the existing 3.2.0 manager.
 
-The current generic manual-hook guide uses some different handler names and options; it is not a drop-in patch for this revision. This repository does not yet contain a reconstructed, boot-tested full manual-hook patch.
+`ksu-legacy-manual-hooks.patch` integrates the exact handler interfaces into:
 
-The KernelSU Kbuild also changes the source tree during compilation: it adds the `seccomp` field, mount helpers and SELinux compatibility helpers. Those changes must be retained or represented as explicit patches in a reproducible full build.
+- Exec handling through `do_execveat_common`, retaining kernel-internal file execution behavior.
+- Access/stat compatibility and Android 16 init read/stat handling.
+- Reboot supercalls, input handling and devpts.
 
-## External NetHunter drivers
+Both `CONFIG_KSU=y` and `CONFIG_KSU_MANUAL_HOOK=y` are required. KernelSU's pinned Kbuild adds its compatibility helpers. Its `seccomp` header backport is also represented explicitly.
 
-The installed config enables `CONFIG_88XXAU`, `CONFIG_RTL8188EU` and `CONFIG_RTL8822BU`. Their external sources and Kconfig integration are absent from the base archive, and the archive has no `.gitmodules` containing their revisions.
+## NetHunter wireless drivers
 
-Recover and pin the corresponding release driver sources before claiming a replacement retains all existing NetHunter hardware support. The stock in-tree Realtek driver options are not substitutes for these external additions.
+Revisions and archive hashes are pinned in `sources/wireless.json`:
 
-## NCM/ECM and compilation
+| Module | Source | Vendor version |
+| --- | --- | --- |
+| `88XXau.ko` | `aircrack-ng/rtl8812au` | `v5.6.4.2_35491.20191025` |
+| `8188eu.ko` | `aircrack-ng/rtl8188eus` | `v5.3.9_28540.20180627` |
+| `88x2bu.ko` | `cilynx/rtl88x2bu` | `v5.8.7.1_35809.20191129_COEX20191120-7777` |
 
-Once the complete KernelSU and wireless integrations exist, apply the native `cpio` fix and enable:
+These vendor versions match the existing kernel. Their original maintainer's exact modified revisions were not available; the replacement uses pinned upstream sources and explicit compatibility patches.
 
-```text
-CONFIG_USB_CONFIGFS_NCM=y
-CONFIG_USB_CONFIGFS_ECM=y
-```
+They are built as modules so their private driver symbols do not collide when combined. Install and autoload the matching modules with the new kernel to retain external adapter support. This does not constitute testing with physical adapters.
 
-Kconfig selects the corresponding USB function implementations. Using the existing config as the starting point preserves the established board, filesystem and Android compatibility settings:
+## Checks and packaging
 
-```sh
-export PATH="/usr/lib/llvm-21/bin:$PATH"
-make O=out ARCH=arm64 CC=clang LLVM=1 olddefconfig
-make O=out ARCH=arm64 CC=clang LLVM=1 -j4 Image.gz-dtb
-```
+The verifier rejects configuration changes outside the declared feature delta, lost KernelSU/NetHunter options, force loading, missing or wrong-version drivers, and module ABI mismatches. The compiled image must contain the restored module-loader path.
 
-These are the source tree's build targets, not a claim that the full replacement has been built and boot-tested. Review the resulting config for dropped options, inspect the image, and retain the current ROM ramdisk and correct device DTB when packaging a boot image. Device boot, root, radios and USB runtime tests remain separate from compilation.
+The native `cpio` fix supports ARM64 and x86-64 Linux builders. Wireless compatibility patches use Kbuild's supported-warning detection and remove an unused, wrongly typed console declaration.
+
+`Image.gz` intentionally omits a replacement DTB. Repack it into the exact current ROM boot image while preserving its ramdisk, header settings and working device DTB. Verify the resulting boot image fits the actual partition and retain a full rollback image before flashing. Compilation and ABI checks remain separate from boot, root and tethering validation.

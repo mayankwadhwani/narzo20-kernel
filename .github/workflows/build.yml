@@ -1,7 +1,15 @@
-name: Build Narzo 20 CDC modules
+name: Build Narzo 20 kernel or CDC modules
 
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: Build the fixed kernel or the original kernel's CDC modules
+        type: choice
+        default: kernel
+        options:
+          - kernel
+          - usb-modules
 
 permissions:
   contents: read
@@ -29,15 +37,25 @@ jobs:
         run: python3 -m unittest discover -s tests -v
       - name: Prepare pinned source
         run: bash scripts/prepare.sh
+      - name: Prepare KernelSU and wireless drivers
+        if: inputs.target == 'kernel'
+        run: python3 scripts/prepare_kernel.py
       - name: Build and verify modules
+        if: inputs.target == 'usb-modules'
         shell: bash
         run: |
           set -o pipefail
           bash scripts/build.sh 2>&1 | tee build.log
-      - name: Upload verified modules
+      - name: Build and verify kernel
+        if: inputs.target == 'kernel'
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/build_kernel.sh 2>&1 | tee build.log
+      - name: Upload verified build
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: narzo20-cdc-modules-${{ github.sha }}
+          name: narzo20-${{ inputs.target }}-${{ github.sha }}
           path: artifacts/
           if-no-files-found: error
           retention-days: 30

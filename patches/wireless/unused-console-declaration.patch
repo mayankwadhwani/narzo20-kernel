@@ -1,0 +1,36 @@
+--- a/drivers/net/wireless/realtek/rtl8812au/os_dep/linux/usb_intf.c
++++ b/drivers/net/wireless/realtek/rtl8812au/os_dep/linux/usb_intf.c
+@@ -1574,9 +1574,6 @@
+ 	return;
+ 
+ }
+-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 24))
+-extern int console_suspend_enabled;
+-#endif
+ 
+ static int __init rtw_drv_entry(void)
+ {
+--- a/drivers/net/wireless/realtek/rtl8188eus/os_dep/linux/usb_intf.c
++++ b/drivers/net/wireless/realtek/rtl8188eus/os_dep/linux/usb_intf.c
+@@ -1580,9 +1580,6 @@
+ 	return;
+ 
+ }
+-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 24))
+-extern int console_suspend_enabled;
+-#endif
+ 
+ static int __init rtw_drv_entry(void)
+ {
+--- a/drivers/net/wireless/realtek/rtl88x2bu/os_dep/linux/usb_intf.c
++++ b/drivers/net/wireless/realtek/rtl88x2bu/os_dep/linux/usb_intf.c
+@@ -1617,9 +1617,6 @@
+ 	return;
+ 
+ }
+-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 24))
+-extern int console_suspend_enabled;
+-#endif
+ 
+ static int __init rtw_drv_entry(void)
+ {

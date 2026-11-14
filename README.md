@@ -1,4 +1,26 @@
-# Narzo 20 NetHunter USB gadget builds
+# Narzo 20 NetHunter CDC + KernelSU builds
+
+The default **kernel** target builds a replacement kernel with NCM/ECM built in, KernelSU-Next legacy 33132, and a corrected module loader. The three external Realtek drivers retain their vendor versions and are packaged as loadable modules.
+
+The old kernel's `load_module()` unconditionally sets both ignore-version flags even though `CONFIG_MODULE_FORCE_LOAD` is disabled. That makes normal insertion fail with `ENOEXEC`. `patches/module-loader-checks.patch` removes those forced flags and restores CRC rejection; it does not enable forced loading.
+
+**The full kernel is experimental; device validation is pending.** `Image.gz` is a kernel component, not a boot image. Preserve the current ROM ramdisk and device DTB when repacking, retain a verified rollback boot image, and install the matching wireless modules.
+
+## Full kernel build
+
+In **Actions → Build Narzo 20 kernel or CDC modules**, select **kernel** and run the workflow. It checks that the only configuration changes are the kernel name, NCM/ECM enablement, and changing the three external wireless drivers from built-ins to modules. KernelSU and the remaining NetHunter options must remain enabled.
+
+Locally, after installing the workflow's Linux dependencies:
+
+```sh
+bash scripts/prepare.sh
+python3 scripts/prepare_kernel.py
+bash scripts/build_kernel.sh
+```
+
+See [docs/full-kernel.md](docs/full-kernel.md) for source revisions, integration details and artifact handling.
+
+## Original kernel's USB module target
 
 Builds **NCM and ECM gadget modules** for the Realme Narzo 20 / RMX2193 running:
 
@@ -8,13 +30,13 @@ Builds **NCM and ECM gadget modules** for the Realme Narzo 20 / RMX2193 running:
 
 The unified Android 16 ROM identifies the phone as RMX2020. This repository targets the NetHunter VoPi v2 kernel above; it is not a generic RMX2020 kernel installer.
 
-**Status:** the first GitHub Actions build passed, and both generated modules are byte-identical to the local builds. On-device NCM insertion currently fails with `Exec format error`; ECM has not been loaded. No working NCM/ECM tethering result is claimed.
+**Status:** the first USB-module Actions build passed, and its binaries match the local builds. Those modules cannot resolve the old kernel's loader defect. The fixed-kernel target above is the repair path.
 
 The modules are intended to add the missing gadget functions while keeping the installed NetHunter and KernelSU kernel. A GitHub Actions run produces `.ko` files, an ABI verification report, build details, licensing information and SHA-256 checksums.
 
 ## GitHub Actions
 
-Open **Actions → Build Narzo 20 CDC modules → Run workflow**.
+Open **Actions → Build Narzo 20 kernel or CDC modules → Run workflow**, and select **usb-modules**.
 
 The workflow:
 
@@ -83,11 +105,11 @@ The module build then matched all **65 NCM** and **43 ECM** version entries agai
 
 The reference kernel is used to produce symbol versions. It omits KernelSU integration and three external Realtek driver additions that are absent from the base archive. **It is not a replacement boot image and is not uploaded.** The resulting USB modules use the existing kernel, which retains those features.
 
-Build and ABI verification do not prove runtime functionality. Normal NCM insertion was tested from `/data/local/tmp` and a temporary RAM filesystem; both returned `Exec format error`, with no module loaded. The ELF is AArch64, every imported symbol version matches, and root has the required capability, but the loader rejection has not been explained. No force flags or metadata rewriting were used.
+Build and ABI verification do not prove runtime functionality. Normal NCM insertion was tested from `/data/local/tmp` and a temporary RAM filesystem; both returned `Exec format error`, with no module loaded. The cause is the kernel's contradictory forced-ignore flags and disabled force-loading support. No force flags or metadata rewriting were used by the build or test scripts.
 
 ConfigFS binding with ADB retained, Android tethering, DHCP, Mac traffic, reconnect behavior and reboot persistence remain unverified. Do not force-load these modules or treat the current artifacts as a working tethering fix.
 
-For the additional work needed to build a complete replacement kernel, see [docs/full-kernel.md](docs/full-kernel.md).
+The full-kernel target integrates the missing root hooks and driver sources; its artifacts require separate boot and device validation.
 
 ## Tests
 

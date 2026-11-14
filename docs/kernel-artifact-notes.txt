@@ -1,0 +1,15 @@
+Narzo 20 NetHunter CDC + KernelSU kernel build
+
+This package contains a compressed ARM64 kernel and three external Wi-Fi
+driver modules. It is not a boot image and must not be written directly
+to the boot partition. Retain the current ROM's ramdisk and device DTB
+when repacking an exact-device boot image.
+
+The module loader restores ordinary vermagic/CRC validation. Forced module
+loading stays disabled. NCM and ECM are built in. KernelSU-Next legacy
+33132 uses manual hooks. The Realtek drivers retain their existing vendor
+versions and are packaged as modules that need installation/autoloading.
+
+Build checks do not establish boot or runtime compatibility. Keep a
+verified current boot backup and recovery path before device testing.
+See kernel-verification.json, kernel.config and SHA256SUMS.

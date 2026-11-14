@@ -1,0 +1,32 @@
+[
+  {
+    "name": "rtl8812au",
+    "repository": "aircrack-ng/rtl8812au",
+    "commit": "734485506a30d6237c2deaad666a19f8ca5379f2",
+    "sha256": "ab9d257758ec55a352a5671e3b96c0d73795c5ccea01173d4412dad35fd70d7e",
+    "bytes": 45933865,
+    "config": "88XXAU",
+    "module_name": "88XXau",
+    "version": "v5.6.4.2_35491.20191025"
+  },
+  {
+    "name": "rtl8188eus",
+    "repository": "aircrack-ng/rtl8188eus",
+    "commit": "af3bf004458f76b7aec33e9ba552cd382ed1f5c3",
+    "sha256": "7789a8d6e5f212e31a92bee1c9da41ceab1173e910503591d02762a0e95e7349",
+    "bytes": 2498834,
+    "config": "RTL8188EU",
+    "module_name": "8188eu",
+    "version": "v5.3.9_28540.20180627"
+  },
+  {
+    "name": "rtl88x2bu",
+    "repository": "cilynx/rtl88x2bu",
+    "commit": "8bb20daff07406ea6c1e63846a7959c1d72f53d8",
+    "sha256": "faf588a57e82ecf6fbdd1c3e7efe62a4d066041334a09a63c22951d583696d3a",
+    "bytes": 4032329,
+    "config": "RTL8822BU",
+    "module_name": "88x2bu",
+    "version": "v5.8.7.1_35809.20191129_COEX20191120-7777"
+  }
+]

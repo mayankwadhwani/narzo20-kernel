@@ -1,0 +1,151 @@
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -1881,6 +1881,10 @@
+ 			      struct user_arg_ptr envp,
+ 			      int flags)
+ {
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	extern int ksu_handle_execveat(int *, struct filename **, void *, void *, int *);
++	ksu_handle_execveat(&fd, &filename, &argv, &envp, &flags);
++#endif
+ 	return __do_execve_file(fd, filename, argv, envp, flags, NULL);
+ }
+ 
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -368,6 +368,10 @@
+ 	struct vfsmount *mnt;
+ 	int res;
+ 	unsigned int lookup_flags = LOOKUP_FOLLOW;
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	extern int ksu_handle_faccessat(int *, const char __user **, int *, int *);
++	ksu_handle_faccessat(&dfd, &filename, &mode, NULL);
++#endif
+ 
+ 	if (mode & ~S_IRWXO)	/* where's F_OK, X_OK, W_OK, R_OK? */
+ 		return -EINVAL;
+--- a/fs/stat.c
++++ b/fs/stat.c
+@@ -359,6 +359,10 @@
+ {
+ 	struct kstat stat;
+ 	int error;
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	extern int ksu_handle_stat(int *, const char __user **, int *);
++	ksu_handle_stat(&dfd, &filename, &flag);
++#endif
+ 
+ 	error = vfs_fstatat(dfd, filename, &stat, flag);
+ 	if (error)
+@@ -371,10 +375,16 @@
+ {
+ 	struct kstat stat;
+ 	int error = vfs_fstat(fd, &stat);
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	extern void ksu_handle_newfstat_ret(unsigned int *, struct stat __user **);
++#endif
+ 
+ 	if (!error)
+ 		error = cp_new_stat(&stat, statbuf);
+-
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	if (!error)
++		ksu_handle_newfstat_ret(&fd, &statbuf);
++#endif
+ 	return error;
+ }
+ 
+@@ -491,10 +501,16 @@
+ {
+ 	struct kstat stat;
+ 	int error = vfs_fstat(fd, &stat);
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	extern void ksu_handle_fstat64_ret(unsigned long *, struct stat64 __user **);
++#endif
+ 
+ 	if (!error)
+ 		error = cp_new_stat64(&stat, statbuf);
+-
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	if (!error)
++		ksu_handle_fstat64_ret(&fd, &statbuf);
++#endif
+ 	return error;
+ }
+ 
+@@ -503,6 +519,10 @@
+ {
+ 	struct kstat stat;
+ 	int error;
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	extern int ksu_handle_stat(int *, const char __user **, int *);
++	ksu_handle_stat(&dfd, &filename, &flag);
++#endif
+ 
+ 	error = vfs_fstatat(dfd, filename, &stat, flag);
+ 	if (error)
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -588,9 +588,15 @@
+ {
+ 	struct fd f = fdget_pos(fd);
+ 	ssize_t ret = -EBADF;
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	extern void ksu_handle_sys_read(unsigned int);
++#endif
+ #if defined(OPLUS_FEATURE_IOMONITOR) && defined(CONFIG_IOMONITOR)
+ 	unsigned long read_time = jiffies;
+ #endif /*OPLUS_FEATURE_IOMONITOR*/
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_sys_read(fd);
++#endif
+ 	if (f.file) {
+ 		loff_t pos = file_pos_read(f.file);
+ 		ret = vfs_read(f.file, buf, count, &pos);
+--- a/kernel/reboot.c
++++ b/kernel/reboot.c
+@@ -283,6 +283,10 @@
+ 	struct pid_namespace *pid_ns = task_active_pid_ns(current);
+ 	char buffer[256];
+ 	int ret = 0;
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	extern int ksu_handle_sys_reboot(int, int, unsigned int, void __user **);
++	ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
++#endif
+ 
+ 	/* We only trust the superuser with rebooting the system. */
+ 	if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
+--- a/drivers/input/input.c
++++ b/drivers/input/input.c
+@@ -384,7 +384,12 @@
+ static void input_handle_event(struct input_dev *dev,
+ 			       unsigned int type, unsigned int code, int value)
+ {
+-	int disposition = input_get_disposition(dev, type, code, &value);
++	int disposition;
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	extern int ksu_handle_input_handle_event(unsigned int *, unsigned int *, int *);
++	ksu_handle_input_handle_event(&type, &code, &value);
++#endif
++	disposition = input_get_disposition(dev, type, code, &value);
+ #ifdef VENDOR_EDIT
+     if(oppo_sync_saupwk_event)
+         oppo_sync_saupwk_event(type, code, value);
+--- a/fs/devpts/inode.c
++++ b/fs/devpts/inode.c
+@@ -610,8 +610,15 @@
+  */
+ void *devpts_get_priv(struct dentry *dentry)
+ {
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	extern int ksu_handle_devpts(struct inode *);
++#endif
+ 	if (dentry->d_sb->s_magic != DEVPTS_SUPER_MAGIC)
+ 		return NULL;
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	if (d_inode(dentry))
++		ksu_handle_devpts(d_inode(dentry));
++#endif
+ 	return dentry->d_fsdata;
+ }
+ 
