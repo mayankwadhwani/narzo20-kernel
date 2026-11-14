@@ -8,6 +8,10 @@ These are kernel modules, not a boot image or recovery installer.
 Build-time checks verify every imported symbol version against the target
 kernel, including module_layout. This does not prove runtime behavior.
 
+Known runtime result: the target phone rejected the NCM module with
+"Exec format error". No module was loaded. ECM has not been tested on-device.
+The loader rejection remains under investigation.
+
 Do not force-load these modules or use them on another kernel version.
 ConfigFS binding, Android tethering integration, DHCP, Mac network traffic,
 reconnect behavior and reboot persistence require separate device tests.

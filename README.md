@@ -8,7 +8,9 @@ Builds **NCM and ECM gadget modules** for the Realme Narzo 20 / RMX2193 running:
 
 The unified Android 16 ROM identifies the phone as RMX2020. This repository targets the NetHunter VoPi v2 kernel above; it is not a generic RMX2020 kernel installer.
 
-The modules add the missing gadget functions while keeping the installed NetHunter and KernelSU kernel. A GitHub Actions run produces `.ko` files, an ABI verification report, build details, licensing information and SHA-256 checksums.
+**Status:** the first GitHub Actions build passed, and both generated modules are byte-identical to the local builds. On-device NCM insertion currently fails with `Exec format error`; ECM has not been loaded. No working NCM/ECM tethering result is claimed.
+
+The modules are intended to add the missing gadget functions while keeping the installed NetHunter and KernelSU kernel. A GitHub Actions run produces `.ko` files, an ABI verification report, build details, licensing information and SHA-256 checksums.
 
 ## GitHub Actions
 
@@ -81,7 +83,9 @@ The module build then matched all **65 NCM** and **43 ECM** version entries agai
 
 The reference kernel is used to produce symbol versions. It omits KernelSU integration and three external Realtek driver additions that are absent from the base archive. **It is not a replacement boot image and is not uploaded.** The resulting USB modules use the existing kernel, which retains those features.
 
-Build and ABI verification do not prove runtime functionality. Module loading, ConfigFS binding with ADB retained, Android tethering, DHCP, Mac traffic, reconnect behavior and reboot persistence still need device validation. Do not force-load these modules on a different kernel.
+Build and ABI verification do not prove runtime functionality. Normal NCM insertion was tested from `/data/local/tmp` and a temporary RAM filesystem; both returned `Exec format error`, with no module loaded. The ELF is AArch64, every imported symbol version matches, and root has the required capability, but the loader rejection has not been explained. No force flags or metadata rewriting were used.
+
+ConfigFS binding with ADB retained, Android tethering, DHCP, Mac traffic, reconnect behavior and reboot persistence remain unverified. Do not force-load these modules or treat the current artifacts as a working tethering fix.
 
 For the additional work needed to build a complete replacement kernel, see [docs/full-kernel.md](docs/full-kernel.md).
 
