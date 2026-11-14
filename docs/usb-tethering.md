@@ -24,8 +24,8 @@ This ROM selects only the first matching USB network interface for tethering.
 Its Ethernet client also claims an interface named `usb0` and removes the
 tethering IPv4 address. The module temporarily renames the unused RNDIS
 interface, gives the NCM interface the name `rndis0`, and reconnects the gadget.
-Android then supplies DHCP, DNS and forwarding through its own tethering
-service. Turning tethering off removes the NCM function and restores the
+The module changes the USB binding and interface names; it does not implement
+DHCP, DNS, NAT or VPN forwarding. Turning tethering off removes the NCM function and restores the
 original interface name where the original function still exists.
 
 ## Mac service priority
@@ -43,6 +43,8 @@ wanted. Native NCM requires no third-party Mac driver.
 
 On the tested Narzo 20, the Mac obtained a DHCP lease, resolved DNS through the
 phone, and completed HTTPS with traffic explicitly bound to the NCM interface.
+The phone's existing VPN Hotspot app was active and managing forwarding during
+these tests. Standalone Android forwarding without that app was not isolated.
 Reboot autoloading, the normal Settings tethering switch and KernelSU disable
 rollback were also verified. Wi-Fi remained the Mac default while USB worked
 as a secondary connection. This does not verify
