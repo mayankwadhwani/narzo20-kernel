@@ -4,7 +4,9 @@ The default **kernel** target builds a replacement kernel with NCM/ECM built in,
 
 The old kernel's `load_module()` unconditionally sets both ignore-version flags even though `CONFIG_MODULE_FORCE_LOAD` is disabled. That makes normal insertion fail with `ENOEXEC`. `patches/module-loader-checks.patch` removes those forced flags and restores CRC rejection; it does not enable forced loading.
 
-**The full kernel is experimental; device validation is pending.** `Image.gz` is a kernel component, not a boot image. Preserve the current ROM ramdisk and device DTB when repacking, retain a verified rollback boot image, and install the matching wireless modules.
+**Tested on one Narzo 20 running Infinity-X 3.8 Android 16.** Build run `43633621319` passed; its kernel booted with working KernelSU 3.2.0, normal module loading and native Mac NCM tethering. External adapter hardware remains untested. `Image.gz` is a kernel component, not a boot image: preserve the current ROM ramdisk and device DTB when repacking and retain a verified rollback boot image.
+
+The kernel target also packages `Narzo20-CDC-KSU-module.zip`. Install it through the matching KernelSU manager after installing the kernel. It autoloads the three wireless modules and switches the normal USB tethering profile to NCM. See [docs/usb-tethering.md](docs/usb-tethering.md) for behavior, Mac service priority and removal.
 
 ## Full kernel build
 
@@ -107,9 +109,7 @@ The reference kernel is used to produce symbol versions. It omits KernelSU integ
 
 Build and ABI verification do not prove runtime functionality. Normal NCM insertion was tested from `/data/local/tmp` and a temporary RAM filesystem; both returned `Exec format error`, with no module loaded. The cause is the kernel's contradictory forced-ignore flags and disabled force-loading support. No force flags or metadata rewriting were used by the build or test scripts.
 
-ConfigFS binding with ADB retained, Android tethering, DHCP, Mac traffic, reconnect behavior and reboot persistence remain unverified. Do not force-load these modules or treat the current artifacts as a working tethering fix.
-
-The full-kernel target integrates the missing root hooks and driver sources; its artifacts require separate boot and device validation.
+The original USB-only modules cannot repair that loader defect. Use the full-kernel target and its matching KernelSU module for the tested NCM path. ConfigFS binding with ADB retained, DHCP, DNS and HTTPS explicitly bound to the Mac's NCM interface have passed. Installation remains specific to the current ROM boot image; it is not a generic recovery installer.
 
 ## Tests
 

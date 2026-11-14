@@ -10,6 +10,12 @@ loading stays disabled. NCM and ECM are built in. KernelSU-Next legacy
 33132 uses manual hooks. The Realtek drivers retain their existing vendor
 versions and are packaged as modules that need installation/autoloading.
 
+After installing the matching kernel, install Narzo20-CDC-KSU-module.zip
+through KernelSU Next 3.2.0 and reboot. It autoloads the wireless modules
+and maps the normal USB tethering profile to NCM with ADB preserved.
+On a Mac, keep RMX2020 below Wi-Fi in network service order if Wi-Fi
+should remain the default internet connection.
+
 Build checks do not establish boot or runtime compatibility. Keep a
 verified current boot backup and recovery path before device testing.
 See kernel-verification.json, kernel.config and SHA256SUMS.

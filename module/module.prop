@@ -1,0 +1,6 @@
+id=narzo20_cdc
+name=Narzo 20 CDC tethering and NetHunter drivers
+version=1.1
+versionCode=2
+author=mayankwadhwani
+description=Native Mac USB tethering with NCM and matching Realtek modules for the Narzo 20 CDC kernel.

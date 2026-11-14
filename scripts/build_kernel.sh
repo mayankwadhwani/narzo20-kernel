@@ -17,3 +17,4 @@ scripts/diffconfig "$repo_dir/config/narzo20-nethunter-v2.config" \
 make O="$build_dir/out" ARCH=arm64 CC=clang LLVM=1 \
     -j"${BUILD_JOBS:-$(getconf _NPROCESSORS_ONLN)}" Image.gz modules
 python3 "$repo_dir/scripts/verify_kernel.py"
+python3 "$repo_dir/scripts/package_module.py" "${ARTIFACT_DIR:-$repo_dir/artifacts}"

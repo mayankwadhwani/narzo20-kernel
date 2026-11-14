@@ -8,7 +8,7 @@ python3 scripts/prepare_kernel.py
 bash scripts/build_kernel.sh
 ```
 
-The result is `4.14.336-Nethunter-CDC-KSU-g020784b3a0ae`, with NCM/ECM built in. Artifacts contain `Image.gz`, the three wireless modules, kernel configuration, symbol versions, provenance and checksum files. This is not a recovery installer or a complete boot image.
+The result is `4.14.336-Nethunter-CDC-KSU-g020784b3a0ae`, with NCM/ECM built in. Artifacts contain `Image.gz`, the three wireless modules, the script-only KernelSU module ZIP, kernel configuration, symbol versions, provenance and checksum files. This is not a recovery installer or a complete boot image.
 
 ## Kernel loader repair
 

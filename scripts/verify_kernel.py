@@ -102,6 +102,7 @@ def main():
     allowed_files = {p.name for p in paths} | {
         "Image.gz", "kernel.config", "Module.symvers", "kernel-verification.json",
         "LICENSE", "README.txt", "wireless-sources.json", "SHA256SUMS",
+        "Narzo20-CDC-KSU-module.zip",
     }
     unexpected = {p.name for p in artifacts.iterdir()} - allowed_files
     if unexpected:
